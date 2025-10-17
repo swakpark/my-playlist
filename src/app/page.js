@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Home() {
+function HomeContent() {
   const [songs, setSongs] = useState([]);
   const [genre, setGenre] = useState("all");
   const [mood, setMood] = useState("all");
@@ -12,7 +12,6 @@ export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // ✅ 서버에서 노래 불러오기
   useEffect(() => {
     fetch("/api/songs")
       .then((res) => res.json())
@@ -31,7 +30,9 @@ export default function Home() {
   }, [searchParams, songs]);
 
   useEffect(() => {
-    const handleEsc = (e) => { if (e.key === "Escape") closeModal(); };
+    const handleEsc = (e) => {
+      if (e.key === "Escape") closeModal();
+    };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
@@ -44,24 +45,17 @@ export default function Home() {
   const genres = ["all", "POP", "K-POP", "J-POP", "Animation", "Rock", "Hip-hop (KR)", "Hip-hop (US)", "R&B (KR)", "R&B (US)", "발라드", "OST", "인디"];
   const moods = ["all", "새벽", "퇴근길", "여름", "겨울", "드라이브", "비오는 날", "여행", "사랑", "이별", "카페"];
 
-const filteredSongs = songs.filter((song) => {
-  const songGenre = (song.genre || "").toLowerCase().trim();
-  const songMood = (song.mood || "").toLowerCase().trim();
-  const selectedGenre = genre.toLowerCase().trim();
-  const selectedMood = mood.toLowerCase().trim();
-
-  return (
-    (selectedGenre === "all" || songGenre === selectedGenre) &&
-    (selectedMood === "all" || songMood === selectedMood)
+  const filteredSongs = songs.filter(
+    (song) =>
+      (genre === "all" || song.genre === genre) &&
+      (mood === "all" || song.mood === mood)
   );
-});
 
   const getThumbnail = (videoId) => `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
   const getEmbedUrl = (videoId) => `https://www.youtube.com/embed/${videoId}?autoplay=1`;
 
   const openModal = (song) => router.push(`?song=${song.videoId}`, { shallow: true });
   const closeModal = () => router.push("/", { shallow: true });
-
   const getRandomSong = () => {
     const random = songs[Math.floor(Math.random() * songs.length)];
     openModal(random);
@@ -69,7 +63,9 @@ const filteredSongs = songs.filter((song) => {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white p-4 md:p-10">
-      <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-10 text-center">🎧 주인장 PlayList</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-10 text-center">
+        🎧 주인장 플레이리스트
+      </h1>
 
       {/* 장르 */}
       <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-4">
@@ -78,7 +74,9 @@ const filteredSongs = songs.filter((song) => {
             key={g}
             onClick={() => setGenre(g)}
             className={`px-3 md:px-4 py-1 md:py-2 rounded-full border text-sm md:text-base ${
-              genre === g ? "bg-white text-black font-bold" : "border-gray-500 hover:bg-gray-800"
+              genre === g
+                ? "bg-white text-black font-bold"
+                : "border-gray-500 hover:bg-gray-800"
             }`}
           >
             {g === "all" ? "전체" : g}
@@ -93,7 +91,9 @@ const filteredSongs = songs.filter((song) => {
             key={m}
             onClick={() => setMood(m)}
             className={`px-3 md:px-4 py-1 md:py-2 rounded-full border text-sm md:text-base ${
-              mood === m ? "bg-blue-400 text-black font-bold" : "border-gray-500 hover:bg-gray-800"
+              mood === m
+                ? "bg-blue-400 text-black font-bold"
+                : "border-gray-500 hover:bg-gray-800"
             }`}
           >
             {m === "all" ? "모두" : m}
@@ -115,7 +115,7 @@ const filteredSongs = songs.filter((song) => {
       <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {filteredSongs.map((song, index) => (
           <motion.div
-            key={`${song.videoId || song.title}-${index}`}
+            key={song.videoId || `${song.title}-${index}`}
             whileTap={{ scale: 0.97 }}
             className="group border border-gray-700 rounded-2xl overflow-hidden hover:bg-gray-800 transition cursor-pointer"
             onClick={() => openModal(song)}
@@ -163,7 +163,6 @@ const filteredSongs = songs.filter((song) => {
                 &times;
               </button>
 
-              {/* 반응형 iframe */}
               <div className="relative w-full pt-[56.25%]">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full rounded-t-xl"
@@ -178,7 +177,9 @@ const filteredSongs = songs.filter((song) => {
               <div className="p-4">
                 <h2 className="text-xl md:text-2xl font-bold mb-1">{modalSong.title}</h2>
                 <p className="text-gray-400 mb-1">{modalSong.artist}</p>
-                <p className="text-sm text-gray-500 mb-2">{modalSong.genre} · {modalSong.mood}</p>
+                <p className="text-sm text-gray-500 mb-2">
+                  {modalSong.genre} · {modalSong.mood}
+                </p>
                 <a
                   href={`https://www.youtube.com/watch?v=${modalSong.videoId}`}
                   target="_blank"
@@ -193,8 +194,17 @@ const filteredSongs = songs.filter((song) => {
       </AnimatePresence>
 
       <footer className="text-center text-gray-500 mt-10 md:mt-16 text-sm md:text-base">
-        <p>© {new Date().getFullYear()} soosum_ PlayList</p>
+        <p>© {new Date().getFullYear()} soosum_ 플레이리스트</p>
       </footer>
     </main>
+  );
+}
+
+// ✅ Suspense로 감싼 export default
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="text-white text-center mt-20">로딩 중...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
