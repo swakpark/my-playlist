@@ -204,7 +204,7 @@ export default function HomeContent() {
       </AnimatePresence>
 
       <footer className="text-center text-gray-500 mt-10 md:mt-16 text-sm md:text-base">
-        <p>© {new Date().getFullYear()} soosum_ 플레이리스트</p>
+        <p>© {new Date().getFullYear()} 주인장 플레이리스트</p>
       </footer>
     </main>
   );
